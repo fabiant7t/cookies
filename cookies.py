@@ -649,6 +649,12 @@ def parse_one_response(line, ignore_bad_cookies=False,
         elif 'year2' in captured:
             for key in timekeys:
                 del captured[key + "2"]
+        # prioritize max-age over expires, see RFC6265, section 5.3.2
+        max_age = captured.get('max_age')
+        if max_age:
+            expires_derived_from_max_age = datetime.datetime.utcnow() + \
+                datetime.timedelta(seconds=long(max_age))
+            captured['expires'] = render_date(expires_derived_from_max_age)
         cookie_dict.update(captured)
     return cookie_dict
 
